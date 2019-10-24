@@ -8,9 +8,9 @@
 <?php
 // データベース常数
 $servername = "localhost";
-$username = "tb-210517";
-$password = "PH97uPFBjk";
-$dbname = "tb210517db";
+$username = "ユーザー名";
+$password = "パスワード";
+$dbname = "データベース名";
 
 // 出力制御変数
 $showall = 0;
@@ -42,7 +42,10 @@ if (isset($_POST['display'])){
 }
 
 // FORM ACTIONS
+// 投稿ボタンが押された
 if (isset($_POST['addition'])){
+
+	// 投稿と名前があるか
 	if (empty($_POST['name'])){
 		$not_name = 1;
 	}
@@ -51,12 +54,15 @@ if (isset($_POST['addition'])){
 	}
 	if (!empty($_POST['name']) && !empty($_POST['comment'])){
 
+		// 入力内容を獲得
 		$gotname = $_POST['name'];
 		$gotcomment = $_POST['comment'];
 		$gotpassword = @$_POST['password_addition'];
 
 		if (empty($_POST['check'])){
 
+		// 編集flagが立っていない
+		// 新しい投稿
 			try {
 			    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 			    $conn->setAttribute(PDO::ATTR_PERSISTENT, true);
@@ -67,24 +73,25 @@ if (isset($_POST['addition'])){
 			    $conn->exec($sql);
 			    $added = 1;
 			}
-			catch(PDOException $e)
-			{
+			catch(PDOException $e){
 			    echo $sql . "<br>" . $e->getMessage();
 			}
 		}
 
 		else{
 
+		// 編集flagが立っている
+		// 投稿アップデート
 			$gotnumber = $_POST['check'];
 			try{
-		    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-		    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		    $sql = "UPDATE myTable SET name='$gotname', comment='$gotcomment', dtime=now() WHERE id='$gotnumber'";
+			    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+			    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			    $sql = "UPDATE myTable SET name='$gotname', comment='$gotcomment', dtime=now() WHERE id='$gotnumber'";
 
-		    $stmt = $conn->prepare($sql);
-		    $stmt->execute();
+			    $stmt = $conn->prepare($sql);
+			    $stmt->execute();
 
-		    $edited = 1;
+			    $edited = 1;
 		    }
 			catch(PDOException $e){
 			    echo $sql . "<br>" . $e->getMessage();
@@ -94,7 +101,10 @@ if (isset($_POST['addition'])){
 	}
 }
 
+// 削除ボタンが押された
 elseif (isset($_POST['delete'])){
+
+	// 番号とパスワードがあるか
 	if (empty($_POST['number_d'])){
 		$delete_number = 1;
 	}
@@ -103,10 +113,13 @@ elseif (isset($_POST['delete'])){
 	}
 	if (!empty($_POST['number_d']) && !empty($_POST['password_delete'])){
 
+		// 番号は有効の数字であるか
 		if (!is_numeric($_POST['number_d'])){
 			$not_number = 1;
 		}
 		else{
+
+			// 入力内容を獲得
 			$gotnumber_d = $_POST['number_d'];
 			$gotpassword = @$_POST['password_delete'];
 
@@ -115,26 +128,33 @@ elseif (isset($_POST['delete'])){
 			$check = $conn -> query($sql);
 		    $numcount = $check -> rowCount();
 
+		    // 投稿は存在しているか
 		    if($numcount==0){
 		    	$not_exist = 1;
 		    }
 
 		    else{
+
+		   	// パスワードを獲得
 		    	$sql = $conn -> prepare("SELECT password FROM myTable WHERE id='$gotnumber_d'"); 
 		    	$sql -> execute();
 		    	$result = $sql->fetch(PDO::FETCH_NUM);
 		    	//var_dump($result) ;
 		    	//echo $result[0];
 
+		    	// 本来のパスワードは空であるか
 		    	if (empty($result[0])){
 					$not_editable = 1;
 		    	}
 		    	else{
 		    		
+		    		// パスワードがあっているか
 		    		if ($result[0]!=$gotpassword){
 			        	$not_identify = 1;
 			    	}
 			        else {
+
+			        	// 削除
 			        	try {
 						    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
 						    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -156,7 +176,10 @@ elseif (isset($_POST['delete'])){
 	}
 }
 
+// 編集ボタンが押された
 elseif (isset($_POST['edit'])){
+
+	// 番号とパスワードがあるか
 	if (empty($_POST['number_e'])){
 		$edit_number = 1;
 	}
@@ -165,12 +188,15 @@ elseif (isset($_POST['edit'])){
 	}
 	if (!empty($_POST['number_e'])){
 
-		if (is_numeric($_POST['number_e']) && !empty($_POST['password_edit'])){
+		if (!empty($_POST['number_e']) && !empty($_POST['password_edit'])){
 
+			// 番号は有効の数字であるか
 			if (!is_numeric($_POST['number_e'])){
 				$not_number = 1;
 			}
 			else{
+
+				// 入力内容を獲得
 				$gotnumber_e = $_POST['number_e'];
 				$gotpassword = @$_POST['password_edit'];
 
@@ -179,11 +205,14 @@ elseif (isset($_POST['edit'])){
 				$check = $conn -> query($sql);
 			    $numcount = $check -> rowCount();
 
+		   		// 投稿は存在しているか
 			    if($numcount==0){
 			    	$not_exist = 1;
 			    }
 
 			    else{
+
+		   		// パスワードを獲得
 			    	$sql = $conn -> prepare("SELECT name, comment, password FROM myTable WHERE id='$gotnumber_e'"); 
 			    	$sql -> execute();
 			    	$result = $sql->fetch(PDO::FETCH_NUM);
@@ -195,15 +224,19 @@ elseif (isset($_POST['edit'])){
 			    	echo ($result[0]);
 					*/
 					
+		    		// 本来のパスワードは空であるか
 			    	if (empty($result[2])){
 						$not_editable = 1;
 			    	}
 			    	else{
 			    		
+			    		// パスワードがあっているか
 			    		if ($result[2]!=$gotpassword){
 				        	$not_identify = 1;
 				    	}
 				        else {
+
+				        	// フォームを埋める・編集flagを立てる
 				        	$name_0 = $result[0];
 							$comment_0 = $result[1];
 							$password_0 = "変更できません";
@@ -287,12 +320,12 @@ if ($showall==1){
 
 
 // フォームの下に表示されるメッセージ
-//
+// 名前がない
 if ($not_name==1){
 	echo "<font color=red>お名前を入力してください。</font><p>";
 }
 
-//
+// コメントがない
 if ($not_comment==1){
 	echo "<font color=red>コメントを入力してください。</font><p>";
 }
@@ -302,12 +335,12 @@ if ($added==1){
 	echo "<font color=green>投稿保存しました！</font><p>";
 }
 
-//
+// 入力は数字ではない
 if ($not_number==1){
 	echo "<font color=red>半角数字を入力してください。</font><p>";
 }
 
-//
+// 削除投稿番号がない
 if ($delete_number==1){
 	echo "<font color=red>削除投稿番号を入力してください。</font><p>";
 }
@@ -322,7 +355,7 @@ if ($not_editable==1){
 	echo "<font color=red>ご指定の投稿は編集・削除できません。</font><p>";
 }
 
-//
+// パスワードが違う
 if ($not_identify==1){
 	echo "<font color=red>パスワードが違います。</font><p>";
 }
@@ -332,17 +365,17 @@ if ($deleted==1){
 	echo "<font color=green>投稿削除成功しました！</font><p>";
 }
 
-//
+// 編集投稿番号がない
 if ($edit_number==1){
 	echo "<font color=red>編集投稿番号を入力してください。</font><p>";
 }
 
-//
+// パスワードがない
 if ($not_password==1){
 	echo "<font color=red>パスワードを入力してください。</font><p>";
 }
 
-//
+// 投稿編集
 if ($edited==1){
 	echo "<font color=green>投稿編集成功しました！</font><p>";
 }
